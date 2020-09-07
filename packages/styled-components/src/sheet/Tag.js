@@ -62,23 +62,32 @@ export class CSSOMTag implements Tag {
 export class TextTag implements Tag {
   element: HTMLStyleElement;
 
+  fragment: DocumentFragment;
+
   nodes: NodeList<Node>;
 
   length: number;
 
   constructor(target?: HTMLElement) {
     const element = (this.element = makeStyleTag(target));
+    this.fragment = document.createDocumentFragment()
     this.nodes = element.childNodes;
     this.length = 0;
   }
 
   insertRule(index: number, rule: string): boolean {
-    if (index <= this.length && index >= 0) {
-      const node = document.createTextNode(rule);
-      const refNode = this.nodes[index];
-      this.element.insertBefore(node, refNode || null);
-      this.length++;
-      return true;
+    if (index >= 0) {
+      if (index <= this.length) {
+        const node = document.createTextNode(rule);
+        const refNode = this.nodes[index];
+        this.fragment.insertBefore(node, refNode || null);
+        this.length++;
+        return true;
+      }
+
+      this.element.append(this.fragment)
+
+      return false;
     } else {
       return false;
     }
