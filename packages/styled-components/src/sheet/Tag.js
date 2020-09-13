@@ -43,17 +43,17 @@ export class CSSOMTag implements Tag {
   }
 
   insertRules(startRuleIndex: number, rules: string[]): number {
-    let insertCount = 0
+    let inserted = 0
     let ruleIndex = startRuleIndex
 
     for (let i = 0, l = rules.length; i < l; i++) {
       if (this.insertRule(ruleIndex, rules[i])) {
-        insertCount++
+        inserted++
         ruleIndex++;
       }
     }
 
-    return insertCount
+    return inserted
   }
 
   deleteRule(index: number): void {
@@ -99,22 +99,26 @@ export class TextTag implements Tag {
   }
 
   insertRules(startRuleIndex: number, rules: string[]): number {
-    const fragment = document.createDocumentFragment();
-    const fragmentNodes = fragment.childNodes;
+    let inserted = 0
 
-    for (let i = 0, l = rules.length; i < l; i++) {
-      const node = document.createTextNode(rules[i]);
-      const refNode = fragmentNodes[i];
-      fragment.insertBefore(node, refNode || null);
+    if (startRuleIndex <= this.length && startRuleIndex >= 0) {
+      const fragment = document.createDocumentFragment();
+      const fragmentNodes = fragment.childNodes;
+
+      for (let i = 0, l = rules.length; i < l; i++) {
+        const node = document.createTextNode(rules[i]);
+        const refNode = fragmentNodes[i];
+        fragment.insertBefore(node, refNode || null);
+      }
+
+      const elementRefNode = this.nodes[startRuleIndex]
+      inserted = fragmentNodes.length
+
+      this.element.insertBefore(fragment, elementRefNode)
+      this.length += inserted;
     }
 
-    const elementRefNode = this.nodes[startRuleIndex]
-    const insertCount = fragmentNodes.length
-
-    this.element.insertBefore(fragment, elementRefNode)
-    this.length += insertCount;
-
-    return insertCount
+    return inserted
   }
 
   deleteRule(index: number): void {
@@ -153,17 +157,17 @@ export class VirtualTag implements Tag {
   }
 
   insertRules(startRuleIndex: number, rules: string[]): number {
-    let insertCount = 0
+    let inserted = 0
     let ruleIndex = startRuleIndex
 
     for (let i = 0, l = rules.length; i < l; i++) {
       if (this.insertRule(ruleIndex, rules[i])) {
-        insertCount++
+        inserted++
         ruleIndex++;
       }
     }
 
-    return insertCount
+    return inserted
   }
 
   deleteRule(index: number): void {
