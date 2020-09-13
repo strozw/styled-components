@@ -42,6 +42,20 @@ export class CSSOMTag implements Tag {
     }
   }
 
+  insertRules(startRuleIndex: number, rules: string[]): number {
+    let insertCount = 0
+    let ruleIndex = startRuleIndex
+
+    for (let i = 0, l = rules.length; i < l; i++) {
+      if (this.insertRule(ruleIndex, rules[i])) {
+        insertCount++
+        ruleIndex++;
+      }
+    }
+
+    return insertCount
+  }
+
   deleteRule(index: number): void {
     this.sheet.deleteRule(index);
     this.length--;
@@ -84,6 +98,25 @@ export class TextTag implements Tag {
     }
   }
 
+  insertRules(startRuleIndex: number, rules: string[]): number {
+    const fragment = document.createDocumentFragment();
+    const fragmentNodes = fragment.childNodes;
+
+    for (let i = 0, l = rules.length; i < l; i++) {
+      const node = document.createTextNode(rules[i]);
+      const refNode = fragmentNodes[i];
+      fragment.insertBefore(node, refNode || null);
+    }
+
+    const elementRefNode = this.nodes[startRuleIndex]
+    const insertCount = fragmentNodes.length
+
+    this.element.insertBefore(fragment, elementRefNode)
+    this.length += insertCount;
+
+    return insertCount
+  }
+
   deleteRule(index: number): void {
     this.element.removeChild(this.nodes[index]);
     this.length--;
@@ -117,6 +150,20 @@ export class VirtualTag implements Tag {
     } else {
       return false;
     }
+  }
+
+  insertRules(startRuleIndex: number, rules: string[]): number {
+    let insertCount = 0
+    let ruleIndex = startRuleIndex
+
+    for (let i = 0, l = rules.length; i < l; i++) {
+      if (this.insertRule(ruleIndex, rules[i])) {
+        insertCount++
+        ruleIndex++;
+      }
+    }
+
+    return insertCount
   }
 
   deleteRule(index: number): void {
