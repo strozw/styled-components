@@ -15,7 +15,27 @@ export const makeTag = ({ isServer, useCSSOMInjection, target }: SheetOptions): 
   }
 };
 
-export class CSSOMTag implements Tag {
+class BaseTag {
+  insertRule(_index: number, _rule: string) {
+    throw Error('Not implemented')
+  }
+
+  insertRules(startRuleIndex: number, rules: string[]): number {
+    let inserted = 0
+    let ruleIndex = startRuleIndex
+
+    for (let i = 0, l = rules.length; i < l; i++) {
+      if (this.insertRule(ruleIndex, rules[i])) {
+        inserted++
+        ruleIndex++;
+      }
+    }
+
+    return inserted
+  }
+}
+
+export class CSSOMTag extends BaseTag implements Tag {
   element: HTMLStyleElement;
 
   sheet: CSSStyleSheet;
@@ -23,6 +43,8 @@ export class CSSOMTag implements Tag {
   length: number;
 
   constructor(target?: HTMLElement) {
+    super()
+
     const element = (this.element = makeStyleTag(target));
 
     // Avoid Edge bug where empty style elements don't create sheets
@@ -42,20 +64,6 @@ export class CSSOMTag implements Tag {
     }
   }
 
-  insertRules(startRuleIndex: number, rules: string[]): number {
-    let inserted = 0
-    let ruleIndex = startRuleIndex
-
-    for (let i = 0, l = rules.length; i < l; i++) {
-      if (this.insertRule(ruleIndex, rules[i])) {
-        inserted++
-        ruleIndex++;
-      }
-    }
-
-    return inserted
-  }
-
   deleteRule(index: number): void {
     this.sheet.deleteRule(index);
     this.length--;
@@ -73,7 +81,7 @@ export class CSSOMTag implements Tag {
 }
 
 /** A Tag that emulates the CSSStyleSheet API but uses text nodes */
-export class TextTag implements Tag {
+export class TextTag extends BaseTag implements Tag {
   element: HTMLStyleElement;
 
   nodes: NodeList<Node>;
@@ -81,6 +89,8 @@ export class TextTag implements Tag {
   length: number;
 
   constructor(target?: HTMLElement) {
+    super()
+
     const element = (this.element = makeStyleTag(target));
     this.nodes = element.childNodes;
     this.length = 0;
@@ -136,12 +146,14 @@ export class TextTag implements Tag {
 }
 
 /** A completely virtual (server-side) Tag that doesn't manipulate the DOM */
-export class VirtualTag implements Tag {
+export class VirtualTag extends BaseTag implements Tag {
   rules: string[];
 
   length: number;
 
   constructor(_target?: HTMLElement) {
+    super()
+
     this.rules = [];
     this.length = 0;
   }
@@ -154,20 +166,6 @@ export class VirtualTag implements Tag {
     } else {
       return false;
     }
-  }
-
-  insertRules(startRuleIndex: number, rules: string[]): number {
-    let inserted = 0
-    let ruleIndex = startRuleIndex
-
-    for (let i = 0, l = rules.length; i < l; i++) {
-      if (this.insertRule(ruleIndex, rules[i])) {
-        inserted++
-        ruleIndex++;
-      }
-    }
-
-    return inserted
   }
 
   deleteRule(index: number): void {
