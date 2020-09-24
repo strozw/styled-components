@@ -1,6 +1,7 @@
 // @flow
 
 declare var SC_DISABLE_SPEEDY: ?boolean;
+declare var SC_FORCE_ENABLE_SPEEDY: ?boolean;
 declare var __VERSION__: string;
 
 export const SC_ATTR: string =
@@ -16,6 +17,7 @@ export const IS_BROWSER = typeof window !== 'undefined' && 'HTMLElement' in wind
 
 export const DISABLE_SPEEDY =
   !(
+    (typeof SC_FORCE_ENABLE_SPEEDY === 'boolean' && SC_FORCE_ENABLE_SPEEDY) ||
     process.env.SC_FORCE_ENABLE_SPEEDY ||
     process.env.REACT_APP_SC_FORCE_ENABLE_SPEEDY
   ) &&
